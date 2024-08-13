@@ -1,0 +1,1147 @@
+A Fast Taboo Search Algorithm for the Job Shop Problem Author(s): Eugeniusz Nowicki and Czeslaw Smutnicki Source: Management Science, Vol. 42, No. 6 (Jun., 1996), pp. 797-813 Published by: INFORMS Stable URL: http://www.jstor.org/stable/2634595 Accessed: 14-09-2016 23:53 UTC
+REFERENCES Linked references are available on JSTOR for this article: http://www.jstor.org/stable/2634595?seq=1&cid=pdf-reference#references_tab_contents You may need to log in to JSTOR to access the linked references.
+JSTOR is a not-for-profit service that helps scholars, researchers, and students discover, use, and build upon a wide range of content in a trusted
+digital archive. We use information technology and tools to increase productivity and facilitate new forms of scholarship. For more information about
+JSTOR, please contact support@jstor.org.
+Your use of the JSTOR archive indicates your acceptance of the Terms & Conditions of Use, available at
+http://about.jstor.org/terms
+INFORMSis collaborating with JSTOR to digitize, preserve and extend access to Management Science
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+A Fast Taboo Search Algorithm
+for the Job Shop Problem
+Eugeniusz Nowicki * Czeslaw Smutnicki
+Technical University of Wroctaw, Institute of Engineering Cybernetics, ul. Janiszewskiego 11/17, 50-372 Wroctaw, Poland
+A fast and easily implementable approximation algorithm for the problem of finding a min
+imum makespan in a job shop is presented. The algorithm is based on a taboo search
+technique with a specific neighborhood definition which employs a critical path and blocks of
+operations notions. Computational experiments (up to 2,000 operations) show that the algorithm
+not only finds shorter makespans than the best approximation approaches but also runs in
+shorter time. It solves the well-known 10 x 10 hard benchmark problem within 30 seconds on
+a personal computer.
+(Scheduling; Heuristics; Job-shop; Taboo Search)
+1. Introduction
+The job shop scheduling problem (French 1982) can be
+briefly described as follows. There are a set of jobs and
+a set of machines. Each job consists of a sequence of
+operations, each of which uses one of the machines for
+a fixed duration. Once started, the operation cannot be
+interrupted. Each machine can process at most one op
+eration at a time. A schedule is an assignment of oper
+ations to time intervals on the machines. The problem
+is to find a schedule of minimal time to complete all
+jobs.
+The job shop scheduling problem is considered as a
+particularly hard combinatorial optimization problem
+(Lawler et al. 1982). Since it has practical applications,
+the problem has been studied by many authors, and
+several optimization algorithms and approximation algo
+rithms have been proposed. The optimization algo
+rithms are based chiefly on the branch and bound
+scheme (Lageweg et al. 1977, Carlier and Pinson 1989,
+Brucker et al. 1990, Applegate and Cook 1991). While
+considerable progress has been made in this approach,
+practitioners still find such algorithms unattractive.
+They are time-consuming, and the size of problems
+which can be solved within a reasonable time limit is
+small (up to 100 operations). Moreover, their imple
+mentation requires a certain level of programmer so
+phistication. On the other hand, approximation algo
+rithms, which are a quite good alternative, use several
+various approaches classified as follows: (a) dispatch
+ing priority rules (see the review by French 1982); (b)
+the shifting bottleneck approach (Adams et al. 1988, Ap
+plegate and Cook 1990), (c) a geometric approach (see
+the review by Shmoys et al. 1991), (d) job insertions
+(Werner and Winkler 1992), (e) a local neighborhood
+search (Spachis and King 1979), (f) simulated annealing
+(Matsuo et al. 1988, van Laarhoven et al. 1992), (g) taboo
+search (Taillard 1989, 1992; Eck and Pinedo 1989), and
+(h) a genetic approach. Some new research directions
+are also outlined by Storer et al. (1992). Algorithms (a)
+(d) are constructive (create a schedule), while (e)-(g)
+are iterative (improve a given schedule). Currently the
+best results have been obtained via algorithms (b), (f),
+and (g). Usually, the implementation of approximation
+algorithms is simple; however, some of them are non
+trivial (see the algorithm by Adams et al. 1988 and its
+implementation by Applegate and Cook 1991).
+In this paper we propose the use of a very fast and
+easily implementable algorithm based on a specific
+neighborhood definition in the taboo search (TS) ap
+proach. A substantially small neighborhood is defined
+using so called blocks of operations on a critical path.
+We show experimentally (having tested on commonly
+used benchmarks with up to 2,000 operations) that the
+0025-1909/96/4207/0797$01.25 Copyright ? 1996, Institute for Operations Research and the Management Sciences MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996 797
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+algorithm performs much better than other known ap
+proximation algorithms including those based on TS.
+Moreover, it was successfully run on random bench
+marks up to 10,000 operations on a PC. Some modifi
+cations of the classical TS technique are also proposed.
+2. Problem Definition
+There are a set of jobs J = I1, . . ., n}, a set of machines M = (1, ..., imn, and a set of operations 0 = (1, ..., ol.
+Set 0 is decomposed into subsets corresponding to the
+jobs. Job j consists of a sequence of oj operations indexed consecutively by (lj-l + 1, ..., Ij-l + oj), which should be processed in that order, where ij = Ji=l oi, is the total number of operations of the first j jobs, j = 1, .. ., n
+(lo = 0), and Sin-1 oi = o. Operation i must be processed
+on machine ,ij E M during an uninterrupted processing time ri > 0, i E 0. We assume that any successive operations of the same job are going to be processed on
+different machines.1 Each machine can process at most
+one operation at a time. A feasible schedule is defined
+by start times Si 2 0, i E 0, such that the above constraints are satisfied. The problem is to find a feasible
+schedule that minimizes the makespan maxiEo(Si + Ti). It is convenient for the analysis to represent the prob
+lem by using a graph. First, observe that the set of op
+erations 0 can be naturally decomposed into subsets Mk
+= {i E 0: ,Ui = k), each of them corresponding to operations which should be processed on machine k, and
+let mk = IMkl, k E M. The processing order of operations on machine k is defined by permutation 7rk
+= (-rk(l), . . ., 7rk(mk)) on Mk, k E M; irk(i) denotes the
+element of Mk which is in position i in 7rk. Let Hk be the
+set of all permutations on Mk. The processing order of
+operations on machines is defined by m-tuple 7r = (7ri, ... / 7m), where 7r EH H = ni x H2 X . . . X nm. For the processing order 7r, we create the digraph G(7r) = (0, R
+U E(7r)) with a set of nodes 0 and a set of arcs R U E(7r),
+where
+n o-1
+R=U (111+i, 1j-l+i+ 1)} and
+j=l1=
+m Mk-1
+E(7r) = U U f(lrk(i), 7rk(i + 1))).
+k=1 i=1
+Arcs from set R represent the processing order of op
+erations in jobs, whereas arcs from set E(7r) represent
+the processing order of operations on machines. Each
+node i E 0 in the digraph has weight ri, and each arc has weight zero. Note that any node in G(ir) has at most
+two immediate successors and at most two immediate
+predecessors. The processing order 7r is feasible only if
+graph G(Or) does not contain a cycle. It is well-known that any feasible processing order 7r generates a feasible
+schedule Si, i E 0. Moreover, start time Si equals the length of the longest path coming to the vertex i (but
+without ri) in G(7r), i E 0; if a node has no predecessors then the length is zero. Makespan Cmax(7r) for the pro
+cessing order 7r equals the length of the longest path
+(critical path) in G(Or). Now we can rephrase the job shop problem as that of finding a feasible processing order 7r E H which minimizes Cmax(ir).
+Denote a critical path in G(7r) by u = (ul, ...,UW) where ui E 0, 1 < i < w and w is the number of nodes
+in this path. The critical path u depends on 7r, but for
+simplicity in notation we will not express it explicitly.
+The critical path is naturally decomposed into subse
+quences B1, . . ., B, called blocks in 7r on u (see among others Grabowski et al. 1986), where:
+(1) Bj = (uajl Uaj+11 ...,. ubj), j =1, ..., r and 1 = a, 'b, < b, + 1 = a2 c< b2 < b2 + 1=a3- C- * *Car c br
+=w;
+(2) Bj contains operations processed on the same ma
+def
+chine p(B1) = tt,, j = 1, . . .,r; (3) two consecutive blocks contain operations pro
+cessed on different machines, i.e., A(B1) * A(Bj+1), j = ...,.r - 1.
+Simply, one can say that the block is a maximal subse
+quence of u, which contains operations processed on the
+same machine. In order to illustrate introduced notions,
+let us consider the following example.
+EXAMPLE. The problem has three jobs, 12 operations,
+and two machines, n = 3, m = 2, o = 12. Job 1 consists
+of a sequence of seven operations (1, 2, 3, 4, 5, 6, 7), job
+2 consists of a sequence of three operations (8, 9, 10),
+' This assumption is made for simplicity of description and is not restrictive. Two successive operations of the same job processed on the
+same machine can be separated by a fictitious operation processed on
+a fictitious machine, during an infinitesimal processing time.
+798 MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+and job 3 consists of a sequence of two operations (11,
+12). Operations must be processed on machines pl =A3
+= 5= 7= A7 = 8 = I11 = 1, A2 = 4 = A6 = I9 = I12 = 2 with processing times T1 = T3= T4= 78 = =711
+= 712= 2, 72 = 75 = 76 = T7 =ro = 1. Consider certain feasible processing order 7r = (Ori, ir2), where 7r, = (1, 8, 3, 11, 5, 10, 7) and ir2 = (2, 4, 9, 12, 6). The digraph G(7r)
+is shown in Figure 1, whereas the Gantt chart in Figure
+2. G(Or) contains the single critical path u = (1, 8, 3, 4, 9, 12, 6, 7), w = 8. This path is decomposed into r = 3
+blocks B1 = (1,8,3), B2= (4,9, 12,6), B3= (7) and y(Bl)
+= y(B3) = 1, ,u(B2) = 2, a, = 1, b, = 3, a2= 4, b2 = 7, a3 = 8, b3 = 8.
+3. Application of the Taboo Search
+Technique to the Job Shop
+Problem
+The taboo search (TS) is a metaheuristic approach de
+signed to find a near-optimal solution of combinato
+rial optimization problems. This method has been
+suggested primarily by Glover et al. (1985) and fur
+ther refined and developed by Glover (1986, 1989,
+1990). TS can be briefly sketched as follows. At the
+beginning a fundamental notion called the move is de
+fined. The move is a function which transforms a so
+lution into another solution. For any solution, a subset
+of moves applicable to it is defined. This subset gen
+erates a subset of solutions called the neighborhood. TS
+starts from an initial solution. At each step the neigh
+borhood of a given solution is searched in order to
+Figure 1 The diagraph G(7r) = (0, R U E(rr)) of 3-job, 2-machine, 12operation instance, where 7r = (7r1, 7r2) 7r1 = (1, 8, 3, 11, 5, 10, 7,), 7r2 = (2, 4, 9, 12, 6). Job 1 consists of a sequence of seven operations 1, 2, ..., 7; job 2 of a sequence of three operations 8, 9, 10; and job 3 of a sequence of two operations 11, 12. Operations 1, 3, 5, 7, 8,10, and 11 are processed by machine 1, and 2, 4, 6, 9, and 12 by machine 2. Thick arrows denote arcs in R, doffed arrows arcs in E(ir).
+.....................................
+T . 8 3 .~~~~~~~~~~~~~~~~~~~~~~~~~~1 ...... ..1 . m
+Figure 2 Gantt Chart. Thick boxes denote operations in blo 8, 3) on machine 1, B2 = (4, 9, 12, 6) on machine 2 - (7) on machine 1.
+machine 1 3I 2- LI
+machine 2 1111 4 6
+time I I - I , 0 2 4 6 8 10 12 14
+find a neighbor (usually the best in the neighbor
+hood). This move, leading us to the best neighbor, is
+performed and then the newly obtained solution is set'
+as the primal for the next step. In order to prevent
+cycling and to lead the search to "good" regions of
+the solution space the search history is kept in the
+memory and employed in the search. There are at
+least two classes of the memory: a short-term memory
+for the very recent history and a long-term memory for
+distant history. Among many memory structures es
+tablished in TS (Glover 1989), a class of the short-term
+memory called the taboo list plays a basic role. This
+list does not permit to turn back to the solutions vis
+ited in the previous maxt steps, where maxt is a given
+number. In practice the list stores forbidden moves
+(or their attributes) or attributes of forbidden solu
+tions rather than forbidden solutions. Quite often, the
+taboo list T is interpreted as a limited queue of length
+maxt containing forbidden moves; whenever a move
+from a solution to its neighbor is made we put the
+inverted move at the end of T and remove the first
+element from T if the queue is overloaded. Of course,
+it may happen that an interesting move is taboo. Nev
+ertheless in order to perform such a move, an aspira
+tion function must be defined. This function evaluates
+the profit in taking a forbidden move. If this profit is
+acceptable, then the taboo status of the move is
+dropped and the move can be performed. The stopping
+rule can be defined as an instance: (a) we found a so
+lution which is close enough to the given lower bound
+of the goal function value; (b) we performed maxiter
+moves without improving the best solution obtained
+so far, where maxiter is a given number; and (c) the
+time limit ran out.
+MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996 799
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+Other advanced and more sophisticated elements of
+TS recommended for hard optimization problems are
+discussed in details in papers of Glover (1990) and
+Glover and Laguna (1993).
+It should be noted that any implementation of TS is
+problem-oriented and needs particular definitions of
+structural elements such as the move, neighborhood,
+memory structures, aspiration function, the neighbor
+hood searching strategy, stopping rules, the initial so
+lution, and values of several tuning parameters such as
+maxt, maxiter, and the level of aspiration. The final nu
+merical characteristics of an algorithm (the perfor
+mance, speed of convergence, and running time) de
+pend both on structural elements and tuning parame
+ters.
+Up until now, TS has been applied to several com
+binatorial optimization problems such as timetabl
+ing, routing, and scheduling. TS for the job-shop problem has been discussed by Taillard (1989, 1992)
+and Eck and Pinedo (1989). In this paper, we propose
+another TS algorithm for the job-shop. Its structural
+elements will be defined in subsequent subsections
+while results of computational tests will be discussed
+in ?4.
+3.1. Neighborhood
+There are several definitions of a move based mostly on
+interchanges of adjacent or non-adjacent pairs of oper
+ations on a machine. Van Laarhoven et al. (1992) and
+Taillard (1989) define move v for the processing order
+ir by a pair (x, y) of operations: (i) x and y are successive
+operations on some machine, and (ii) x and y are suc
+cessive operations on some critical path in G(r). Then
+they define the neighborhood as processing orders obtained from ir by application of all such moves. The size
+of this neighborhood depends on the number of critical
+paths in ir and the number of operations on each critical
+path, and it can be relatively large. Obviously the CPU
+time of any TS implementation depends in principle on
+the computational complexity of the single neighbor
+hood search (and thus on the neighborhood size). Tail
+lard (1989) has reduced the amount of calculations for
+a large neighborhood by applying a lower bound on the
+makespan instead of calculating the makespan explic
+itly for selecting the best neighbor. Instead of this ap
+proach we prefer reducing the neighborhood size
+(based on neighborhoods defined by Matsuo et al.
+1988).
+The main idea of the reduction consists in removing
+some moves from the set introduced by Van Laar
+hooven et al. (1992), for which it is known a priori
+(without computing the makespan) that they will not
+immediately improve Cmax(1r). We will consider a set of
+moves called as "interchanges near the borderline of
+blocks on a single critical path." More precisely we con
+sider only a single (arbitrarily selected) critical path u
+in G(ir) and blocks B1, ..., Br defined for u. We swap
+the first two (and last two) operations in every block B2,
+... , Br-1, each of which contains at least two operations. In the first block B1 we swap only the last two opera
+tions, and via symmetry in the last block we swap only
+the first two. Then, formally, we define the set of moves
+from ir as V(ir) = U>= Vj(7r), where
+Vd, =0 f{(ub,1, Ubj)) if al < b, and r > 1, 0 otherwise.
+Vjr(7) = {(Uaj Uaj+l), (Ubj-, Ubb)) i
+0 otherwise.
+j =2,...,r -1
+r Ua+l)) if ar < brand r > 1,
+V 0 otherwise.
+The set of moves is not empty only if the number of
+blocks is greater than one (r > 1) and if there exists at
+least one block with a number of elements greater than
+one. Let Q(ir, v) E Hl denote the processing order ob
+tained by the application of move v to the processing
+order ir. Neighborhood H(7r) of ir is defined as all pro
+cessing orders obtained by applying moves from V(ir),
+i.e.,
+H(7r) = {QO(r, v): v E VO(r)).
+For the example stated in ?2 we propose a single move
+(8, 3) in block Bl, two moves (4, 9), (12, 6) in block B2, and no moves in block B3, i.e., Vl(ir) = ((8, 3)), V20r) = ((4, 9), (12, 6)), V30r) = 0 and V(7r) = ((8, 3), (4, 9), (12, 6)). In this case the neighborhood contains three
+new processing orders obtained by the application of appropriate moves to the processing order ir, i.e.,
+800 MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+H(ir) = IQ Or, (8, 3)), Q(ir, (4, 9)), Q(ir, (12, 6)))
+where
+QO(r, (8, 3)) = ((1, 3, 8, 11, 5, 10, 7), (2, 4, 9, 12, 6)),
+Q Or, (4, 9)) = ((1, 8, 3, 11, 5, 10, 7), (2, 9, 4, 12, 6)),
+and
+Q Or, (12, 6)) = ((1, 8, 3, 11, 5, 10, 7), (2, 4, 9, 6, 12)).
+Let us analyze properties of neighborhoods created
+by interchanges of adjacent operations in the feasible
+processing order ir. Denote by H"(7r) the set of processing orders each of which were obtained from ir by an
+interchange of a pair of successive operations on a ma
+chine. H"(7r) contains exactly SI' (Mk - 1) processing
+orders (some of them can be infeasible). Let H'(Or) be
+the neighborhood employed by van Laarhoven et al.
+(see beginning of this section). By definition, H(7r) is a subset of H' Or) and H' (7r) is a subset of H"7r) (i.e., H(7r)
+C H'(7r) C H"7r)). Assuming that GOr) has only a single
+critical path u, then H'(7r) contains EL, (IBkI - 1) neighbors, whereas H(i7r) contains
+r-1
+minil, IB1 -1) + min{2, IBkl 1)
+k=2
++min{1, IBrI -1)
+neighbors, where I Bk l = bk - ak + 1 is the cardinality of kth block. If G(Or) has several critical paths, then the size of H'(7r) will increase while the size of H(7r) will remain the same. One can say that the size of H(7r) is
+significantly smaller than that of H'(7r) if we have sev
+eral "long" blocks or several critical paths. Moreover, if
+there is only a single block on u (r = 1) then H'Or) has at least I B1 I - 1 = w - 1 neighbors (if w 2 2), whereas H(7r) is empty. It has been shown that for any feasible 7r0 E Hl a finite sequence ir0, ir1,..., rk exists such that 7rk is an optimal processing order and 7r'+1 E H'Or'), i = 0,..., k - 1 (connectivity property). Moreover, H'Or) con
+tains only feasible processing orders, and for any a
+E H"(7r)\H'(7r), a is infeasible or Cmax(a) - Cmax(Or) (van Laarhoven et al. 1992). In other words those pro
+cessing orders which do not belong to H'Or) are "less
+interesting" from the improvement point of view. Since
+H(7r) is a subset of H'Or), then it contains only feasible
+processing orders as well. Now we will show that the
+processing orders which do not belong to H(r) (but can
+belong to H'(r)) are also "not promising" for under
+going immediate improvements.
+THEOREM. For any processing order a E H'(ir)\H(ir),
+Cmax(a) 2 Cmax (1)
+Proof of the theorem is given in Appendix A. The
+proposed neighborhood H(i) allows us to formulate
+certain sufficient conditions for processing order opti
+mality.
+PROPERTY. If V(7r) = 0 then 7r is the optimal processing order.
+Proof of the property is given in Appendix B. Note
+that V0r) = 0 if either all operations from u are processed on the same machine or all operations from u
+belong to the same job. Experimental results from ?4
+show that the use of the property stops searching in
+about 20 percent of instances.
+Finally, note that the connectivity property does not
+hold for H(r).
+3.2. Taboo List
+Let T = (T1,.. ., Tmaxt) be the taboo list of a fixed lengt
+maxt, where Tj e Q x 0 is the forbidden move, 1 < ? maxt. The taboo list is initiated with zero elements T
+= (0, 0), 1 ? j ? maxt. A move v = (x, y) is added to
+taboo list T (denoted T G) v) in the following standard
+way: we shift taboo list T to the left and put v on the
+position maxt (i.e., we set Tj:= Tj+1,j =1, ...,maxt - 1 and Tmax, :=v). Such a form of T is used only for simplicity of notation. In practice, T is implemented as the
+circular list, which implies that operator (E can be per
+formed in 0(1) time.
+For a move v = (x, y), a move vT = (y, x) will be called
+an inverse move. If only a move v has been performed
+from ir then the inverse move vT becomes forbidden and
+will be added to T, i.e. T:= T ED .
+3.3. Neighborhood Searching Strategy
+Let ir, V0r), H0r), and C* be the processing order, set of moves, neighborhood, and the best known makespan. Assume that the set of moves V(ir) is not empty.
+We classify these moves into three categories: unforbid
+den (U), forbidden but profitable (FP), forbidden and
+MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996 801
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+nonprofitable (FN). Moves from set V(ii-)\T are U
+moves, whereas those from set V(Or) n T are forbidden. A forbidden move is profitable if it leads to a makespan
+shorter than C*. This is, FP-moves are defined by set
+A = {v E V(7r) n T: Cmax(Q(1, v)) < C*).
+The remaining moves, i.e., from set (V(ir) n T)\A, are
+FN-moves.
+It is quite natural that a move to be performed should
+be selected among U- and FP-moves. Usually among
+them, the move yielding the minimal makespan is the
+one performed (we do exactly the same thing). If there
+are neither U-moves nor FP-moves, the problem of se
+lection is treated by many authors marginally (e.g., se
+lect a FN-move at random or erase the whole T), al
+though it has been discussed in details in the original
+TS proposals of Glover (1989). Note that our neighbor
+hood is substantially smaller than those defined by
+other authors. Therefore, the situation in which only
+FN-moves are available appears more often than in
+other algorithms. In this context the strategy of selecting
+an FN-move is important. Moreover, recent studies
+have confirmed that for hard problems any reasonable
+TS implementation should contain an appropriate rule
+for making such a choice, see, i.e., Hubscher and Glover
+(1992).
+In our TS implementation, we propose selecting the
+I"oldest" move (exactly the same as in Glover 1989) and
+additionally making a special modification of the taboo
+list based on replications of the "youngest" move. More precisely, if V(ir) contains a single move then there is
+no problem of the selection-this move should be cho
+sen. Otherwise, the problem of the selection is solved
+as follows. First, modify the taboo list: repeat T := T @ Tmaxt until V(ir)\T * 0 (this can be performed in O(maxt) time). Thereafter the set V(ir)\T contains exactly a single move which can be chosen next. One can
+say that this modification of T is a form of the dynamic
+control of a taboo list length. To illustrate, consider the set of moves V(ir) = ((4, 5), (1, 2)) containing only FN
+moves, and a taboo list
+T = ((2, 3), (1, 2), (6, 5), (4, 5), (2, 7))
+of the length maxt = 5. The proposed rule will select
+the move v' = (1, 2), and the modified taboo list will
+take the form of
+T = ((6, 5), (4, 5), (2, 7), (2, 7), (2, 7)).
+At the end, the inverse move v' = (2, 1) will be added
+to T, which implies the final form of the taboo list
+T' = T e v' = (4, 5), (2, 7), (2, 7), (2, 7), (2, 1)).
+In view of the above considerations we have formu
+lated the following Neighborhood Searching Procedure
+(NSP). NSP starts with a processing order ir, a nonempty V(ir), a current taboo list T, a best known make
+span C*, and returns move v', the new processing order
+ir' and the modified taboo list T'.
+Step 1. Find the set of FP-moves
+A = {v E V(Xr) n T: Cmax(Q(7r, v)) < C*}.
+If (V(7r)\T) U A * 0 then select v' E (V7r)\T) U A so
+that
+Cmax(Q(1,r V'))
+= min 1Cmax(Q(7r, v)) : v E (V(r)\T) U A)
+and go to 3.
+Step 2. If I V(7r) I = 1 then select v' E V(7r). Otherwise
+repeat T := T E Tmax, until V(7r)\T * 0. Then select v' E V(7r)\T. Step 3. Set 7r' := QO1r, v) and T' :=T ED v'. NSP will be used as an element of algorithms presented
+in the next section.
+3.4. Algorithms
+It is quite simple to design, using NSP, a classical TS
+algorithm. Let us start with a given primal processing order ir and with a primary empty taboo list. At each iteration we find the set of moves V(7r). Next, applying
+NSP we select move v' E V(ir), which determines neighbor ir' = QOr, v), and thereafter we create the new taboo list T'. The processing order ir' and taboo list T'
+are set to be primal for the next iteration. The best found makespan C* and associated processing order lr* are
+currently updated. The algorithm stops in either two
+cases: when the optimal processing order has been
+found (see property in ?3.1) or when the number of it
+erations without improving the best makespan is
+greater than a constant maxiter a priori fixed. The above
+considerations lead us to the following Taboo Search
+Algorithm (TSA), which begins with the processing order lr* (found by any heuristic algorithm), C*
+802 MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+= Cmax(,x*), T = 0, ir = 7r*, iter = 0 and returns the best processing order 7r* and C* = Cmax(1F*).
+Step 1. Set iter := iter + 1. Find the set of moves V(7r).
+If V(7r) = 0 then STOP; 7r* is optimal.
+Step 2. Find the move v' e V (r), the neighbor ir' = Q(ir, v') and the modified taboo T' by applying NSP.
+Set 7r := 7r', T := T'.
+Step 3. If Cmax(7r) < C* then set 1r*:= ir, C*:= Cmax(7r),
+iter := 0 and go to 1.
+Step 4. If iter < maxiter then go to 1; otherwise STOP.
+It is quite obvious that maxiter (limit on unimproved
+iterations), maxt (length of taboo list), and lr* (primal
+processing order) have an influence on the efficiency
+and effectiveness of this scheme. The increasing of max
+iter yields a higher possibility of finding a better solu
+tion; however, we observe this only in a period of pri
+mal values. A further increase of this parameter has lit
+tle influence on C* but evidently increases the running
+time. Moreover, some instances get into the cycle during
+iterations, which is a well-known disadvantage of TS.
+As regards maxt, we observe that the best way is to set
+this value individually for each instance. The primal so
+lution has a week influence on the final C*. TSA that
+was started from a "badly" selected primal solution
+provides a result comparable with that obtained from a
+"good" one (under slightly increased number of itera
+tions). In this context, the improvement of TSA seems
+to be possible only by including some long-term mem
+ory elements (Glover 1990, Glover and Laguna 1993).
+Observe that due to a small neighborhood, TSA
+works very fast. Therefore one can propose to use TSA
+as a part of a more complex system which manages
+searching and leads it to presumable good regions of
+the solution set. The commonly used technique based
+on various starting solutions seems to be the best idea.
+In this order a parameterized heuristic or a list of vari
+ous heuristics can be used. The essential disadvantage
+of this approach is the loss of information about previ
+ous runs of TSA. Therefore we suggest using the best
+solution found during the previous run as the new start
+ing solution. Unfortunately this approach (without any
+modification) loses all history of searching; i.e., we al
+ways start with an empty taboo list and a full set of
+moves. Consequently, we propose the modified (final)
+version of the taboo search algorithm called Taboo
+Search Algorithm with Back Jump Tracking (TSAB),
+which does not have the above mentioned fault. The
+main idea of TSAB is related to a strategy that resumes
+the search from unvisited neighbors of solutions pre
+viously generated (Glover 1990).
+During the run of TSA we store in list L the last maxl
+best processing orders, where maxl is a fixed number.
+More precisely, if we have found in some iteration iter
+the processing order 7r such that Cmax(1r) < C* (see Step
+3), we store the triple (Or, V(ir)\v', T) in list L, where v' is a move which will be performed from ir. Note that
+V (r) and v' will be found in iteration iter + 1 (see Steps 1 and 2). This triple is stored only if V(ir)\v' * 0. Just
+after TSA has been finished we start it again with the
+processing order, set of moves, and the taboo list located
+in the last position in list L. In this case TSA is started
+from Step 2, and the process of storing the best process
+ing orders is continued. TSAB is stopped if list L is
+empty.
+For a precise description of TSAB, we define list L and
+an additional operator. Let L = (L1, .. ., L) be the list
+with current list length 1, 1 < maxl where maxl is the
+upper bound on the list length, and Lj = (ir, V, T) is a stored triple: a processing order, set of moves, and a
+taboo list, 1 < j < 1. The operator for adding the triple
+(7r, V, T) to list L (denotation L U (xr, V, T)) is defined as follows: if 1 < maxl then we put (7r, V, T) in position 1 + 1 in L (i.e., we set 1 := 1 + 1 and L, := (7r, V, T)); otherwise we shift list L to the left and put (7r, V, T) in
+the position maxl (i.e., we set Lj := Lj+1, j = 1, . . ., maxl - 1 and Lmaxl = (ii, V, T)). Note that this operator has the similar significance as adding an operator on the
+taboo list.
+TSAB begins with the processing order r* (found by
+any heuristic algorithm), 7r = 7r*, C* = Cmax(7r*), T = 0, L = 0 (i.e., 1 = 0), iter = 0 and save:= true. The flag
+save controls the process of storing on the list L. TSAB
+returns the best processing order r* and Cmax(lr*) = C*.
+Step 1. Set iter := iter + 1. Find the set of moves V(ir).
+If V(7r) = 0 then STOP; 7 is optimal.
+Step 2. Find the move v' E V(ir), the neighbor ir' = Q(7r, v'), and the modified taboo T' by applying NSP. If save = tfue and V(ir)\v' t 0 then set L := L
+U (7r, V(7r)\v', T). Set 7r := 7r', T := T' and save false.
+Step 3. If Cmax(7r) < C then set 1r := ir, C := Cmax(ir), iter := 0, save := true and go to 1.
+MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996 803
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+Step 4. If iter < maxiter then go to 1.
+Step 5. If l * O then set (ir, V(r), T) := L,, l := I - 1,
+iter 1, save:= true and go to 2; otherwise STOP.
+Observe that TSAB has no long-term memory for
+preventing long cycles in a single path search (Steps
+1 ... 4, Steps 1. 4, * -). It has been made consciously.
+By the experimental observation, any transformation
+which disturbs the real makespan value (e.g., by add
+ing a penalty associated with a move) have "bad" in
+fluence on the search process. Therefore instead of pre
+venting, we only detect a cycle, and if it occurs, we end
+this path. More precisely, Step 4 takes the form "If (iter - maxiter) and (IsCykle(iter) = false) then go to 1."
+Function IsCykle(iter) returns true at iteration iter if
+there exists the period 6, 1 < 6 < max8, such that Ci-' = Ci, i = iter + 1 - maxc * max8, . . ., iter, where Ci is
+the makespan found at iteration i, and max8, maxc are
+given parameters. Otherwise, it returns false. In other
+words, the function detects repetitions of makespans,
+with a period of length 6 < max8, observed during the last maxc max8 iterations. It should be noted that
+IsCykle(iter) can be found in 0(1) time. The increase
+of maxc yields stronger conviction of a cycle existence
+but simultaneously increases the number of unneces
+sary performed iterations (if a cycle exists). The in
+creasing of maxb allow us to detect longer cycles; how
+ever, it increases the storage space required for saving
+the history. Then maxc and max8 are set experimen
+tally as a compromise between the amount of compu
+tations and "certainty" of a cycle existence.
+Further considerations deal with the computational
+complexity of algorithm TSAB. The following time
+consuming elements are performed in a single iteration
+of TSAB: finding V(ir), applying NSP, applying opera
+tor W to list L, and storing processing order x* (these
+last two elements are performed quite rarely and can be
+done in 0(o) time). Let the computational complexity
+of NSP be analysed. Graph G(a), where a = Q(ir, v),
+can be constructed from G(7r) in 0(1) time, v E V(7r).
+Graph G(a) contains o nodes and 1= (oj - 1) + Ym (Mk - 1) = 2o - n - m arcs. Then makespan Cmax(a) can be found in 0(o) time by using the standard Bell
+man's algorithm. Since we have set maxt < o in our implementation, NSP can then be performed in O(ho)
+time, where h = I V(X-) I is the number of neighbors in neighborhood HOi-). Just after Cmax(a) has been calcu
+lated we can find and store the critical path of G((a) in 0(o) time. Therefore, passing to Step 1 of TSAB (from
+Step 3 or 4), we have the critical path already calculated.
+Next, blocks of operations and set V(ir) can be found in
+O(w) time, where w < o. Finally, the computational
+complexity of a single iteration of TSAB is 0(ho). In our
+experiments we observed h between 5 and 9 for in
+stances up to 2,000 operations (for small o, o < 200, h is
+closer to 5 while for greatest o, o 2 500, h is closer to 9).
+The number of iterations of TSAB depends on each par
+ticular instance, on parameters maxiter and maxl, and
+is a priori unknown.
+3.5. Initial Solution
+The initial solution for TSAB can be found by any heu
+ristic method. Further on we present an approximation
+algorithm employed in our computations. This algo
+rithm is based on an insertion technique which has been
+primarily applied to flow-shop problems (Nawaz et al.
+1983) and then refined and applied to job-shop prob
+lems (Werner and Winkler 1992).
+We construct the processing order, starting from a
+primal partial order and inserting in each step a single
+operation. In more detail, we start from the order con
+taining all operations of the job with the greatest sum
+of processing times. Next we successively insert oper
+ations of remaining jobs in the sequence of nonincreas
+ing operation processing times. Denote by a = (al, . . ..
+am) the partial processing order, where ck = (UM), yk(mk)), mk < mk is a partial processing order of operations on kth machine, k = 1, ..., m. For a we define
+the graph G'(a) = (0, R U E'(a)), where
+m mk-I
+E'(a) = U U {(ck(i), ck(i + 1))). k=1 i1
+Let di((a) denote the length of the longest path p through vertex i in G'(a). Let x be an operation which is inserted into a (obviously x is not in a). Denote by z
+= i.x the machine on which operation x should be processed. Consider set I_I of m' + 1 permutations obtained
+from cz by the insertion of operation x on consecutive
+positions, i.e., before operation cz(l) and immediately after operations cz(j), j = 1, ..., m'. Set FI' generates m' + 1 new partial processing orders on machines hav
+ing fixed order ck on kth machine, k = 1, ..., m, k * z, and varied (from I-) on zth machine. Since some of
+804 MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+these orders can be infeasible, then let II' denote the
+subset containing only feasible orders. It is easy to show
+that for any feasible a and x, set LI' is not empty (con
+tains at least one feasible order). For each processing
+order a' E Hl' the longest path dx(a') passing through vertex x is calculated; the processing order which yields
+the minimum length is taken as the partial processing
+order for the next step.
+In view of the above considerations we formulate the
+following INSertion Algorithm (INSA). Without giving
+up anything of our previous generalization, we can set
+that the job with the greatest sum of processing times
+has the index 1. For the sake of simplified notation we
+assume that the number of operations of each job equals
+the number of machines and that each job has precisely
+one operation on each machine (i.e., oj = m, j = jm, j E 1, mk = n, k E M, and o = nm). Step 0. Set ml := 1 and ao,(1) := l for l = 1, ..11. Step 1. Find permutation w of {Il + 1, . . ., o) according to nonincreasing processing times of operations.
+Step 2. For j = 1 to o - 11 perform Step 3.
+Step 3. For partial processing order a, operation x
+= w(j) and machine z = ,ux find set I-' and set l'. Find
+a' E II' such that dx(c') = min,,en dx (a). Set a := a' and m' := m' + 1.
+The computational complexity of INSA is O(n3m2).
+The effectiveness of the algorithm is comparable with a
+combination of 10 straight priority dispatching rules
+tested by Adams et al. (1988).
+4. Computational Results
+Algorithm TSAB has been implemented in Pascal and
+C on a personal computer AT 386DX. In the implemen
+tation, we set parameters maxc = 2 and max6 = 100 for
+the function IsCycle(iter).
+TSAB has been tested in several commonly used in
+stances of various sizes and hardness levels.
+(a) Three instances denoted as FS1, FS2, FS3 with o
+=36 100 (m X n = 6 x 6, 10 x 10, 5 x 20) due to
+Fisher and Thompson (1963), and two instances AD5,
+AD6 with o = 100 (10 x 10) due to Adams et al. (1988),
+(b) Forty instances of eight different sizes denoted as
+A1 I5 with o = 50 300 (10 x 10, 10 x 15, 10 x 20,
+10 x 30,5 x 10,5 x 15,5 x 20, 15 x 15) due to Lawrence
+(1984),
+(c) Eighty instances of eight different sizes with o
+=225 ..2,000 (15 x 15, 15 x 20, 20 x 20, 15 x 30, 20
+x 30, 15 x 50, 20 x 50, 20 x 100) due to Tailard (1993),
+(d) Forty instances of four different sizes with o
+=2,500.. 10,000 (5 x 500, 10 x 500, 5 x 1000, 10
+x 1000) randomly generated.
+Denotations FS1, FS2, FS3, Al... I5 are taken from
+van Larhoven et al. (1992). FS2 is the well-known in
+stance (10 machines 10 jobs) which required almost 25
+years before an optimal solution could be reached. In
+stances FS1, Dl... 5, Fl, F5, G1... 5, Hl... 5 are re
+ported by several authors as "easy," whereas others are
+"hard." Group (c) contains "particularly hard" cases
+selected by Taillard (1993) among a large number of
+randomly generated instances.
+We compared our algorithm TSAB with five recently
+best approximation algorithms: (ABZ) the Shifting Bot
+tleneck Procedure SBII of Adams et al. (1988); (AC) a
+combination of Bottle5 and Shuffle Procedures of Ap
+plegate and Cook (1991); (MSS) a controlled search us
+ing the simulated annealing algorithm of Matsuo et al.
+(1988); (LAL) the classical simulated annealing algo
+rithm of van Laarhoven et al. (1992); and (TA) a taboo
+search algorithm of Taillard (1989). From the above
+listed papers we conclude that each algorithm was
+tested on instances (a)-(b). However, whereas detailed
+results were included for ABZ, MSS, and LAL; the au
+thors of AC and TA presented only selected results or
+conclusions. On the other hand Taillard tested TA, AC
+and ABZ (in the version Bottle implemented by Apple
+gate and Cook) on instances (c). Results of our com
+parisons will be discussed in detail in the next two sub
+sections.
+4.1. Results for Instances (a)-(b)
+We compare all algorithms from two points of view:
+efficiency and effectiveness. Tables 1-3 have been pre
+pared based on the lists of best found makespan and
+running times reported by the authors of ABZ, MSS and
+LAL. ABZ and MSS were run on a VAX 780, while LAL
+was run on a VAX 785. The authors of the LAL algo
+rithm suggest that VAX 785 is two times faster than 780
+and therefore adjusted (multiplying by two) the run
+ning times of LAL enclosed in Tables 1-3 correspond
+with those obtained from 780. We found the speed of
+our PC between the speed of VAX 780 and 785 (about
+1.5 times faster than 780 model).
+MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996 805
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+Table I Compact Results for Hard Problem Instances of Fisher and
+Thompson (1963), Adams et al. (1988), and Lawrence (1984)
+Algorithm EX Av CPU [sec] B: E: W
+ABZ 27 549a 21: 4: 2 MSS 24 271a 13: 9: 2 LAL 25 14,706a 15: 8: 2 ABZ+MSS+LAL 27 11:13:3 TSAB 27 124b
+EX: the number of compared hard problems instances FS1, Dl ... 5, Fl, F5, Gl ... 5, Hi ... 5); Av CPU: the average CPU time; a on a VAX-780, b on a Personal Computer AT 386DX; B: E: W: the number of examples for which TSAB found better (B), equal (E) or worse (W) makespan than Algorithm H, H E {ABZ, MSS, LAL, ABZ + MSS + LALI.
+Parameters maxl, maxt, maxiter, and the heuristic
+method of finding the initial solution were chosen ex
+perimentally in order to ensure a compromise between
+the running time and solution quality. Finally we tested
+two versions of our algorithm, denoted by TSAB and
+TSAB', where
+TSAB: a single run of algorithm TSAB from ?3.4 with
+INSA (used for finding the initial solution), fixed pa
+rameters maxl = 5, maxt = 8, and the parameter maxiter
+varying during the run. We set maxiter = 2,500 at the
+beginning and if the makespan was improved during
+the run (Step 3), and we set maxiter = 2,500
+- 400*(maxl - 1) if the back jump tracking to the po
+sition 1 on the list L (Step 5) was performed.
+TSAB': the best result selected among three runs of
+algorithm TSAB from ?3.4 with maxl = 5, maxiter
+= 3,000 (maxiter) = 3,000 - 500*(maxl - 1) for back
+jump tracking, respectively). There were two runs with
+INSA and maxt = 8, 10, and a single run with classical
+SPT rule (as the method of finding the initial solution)
+and maxt = 8.
+The compact results of comparisons TSAB versus
+ABZ, MSS, LAL and ABZ + MSS + LAL (the best so
+lution of the three) on "'hard" instances are given in
+Table 1. (In "easy" instances all algorithms show excel
+lent performance.) Note that TSAB is better than other
+algorithms both in CPU time and in the number of the
+best makespans. Detailed results of comparison are
+given in Tables 2 and 3. Note that makespan 930 (opti
+mal) of the notorious instance FS2 was found within 30
+seconds. TSAB found optimal solutions of 30 instances
+(from 45) and proved optimality (see property) of 20
+(from 30) cases. Moreover, TSAB' found optimal solu
+Table 2 Results for Problem Instances of Fisher and Thompson (1963) (FS1: 6 machines 6 jobs, FS2: 10 machines 10 jobs, FS3: 5 machines 20 jobs) and Problem Instances of Adams et al. (1988) (AB5, AB6: 10 machines 10 jobs)
+Makespan CPU [sec] Improvements [%]
+Problem OPT ABZ MSS LALa TSAB TSAB' ABZb MSSb LALc TSABd ABZ MSS LAL
+FS1 55 55* - 55* 55* 1 - 104 0 0 - 0 FS2 930 930* 946 930* 930* 851 988 115,544 30 0 1.69 0 FS3 1,165 1,178 - 1,165* 1,165* 80 - 125,518 3 1.10 - 0 AB5 1,234 1,239 - - 1,238 1,236 1,503 - - 4 0.08 - AB6 943 943* - - 945 943* 1,101 - - 29 -0.21 - 
+OPT: optimal value of the makespan (or the best fou a the best makespan found over five runs; bthe CPU time on a VAX-780; c the average CPU time over five runs (on a VAX-780 dthe CPU time on the personal computer AT 386DX; * the algorithm found optimal solution without provin
+o the algorithm found optimal solution and proves its Improvement: the value 100 (H - TSAB)/H, where H TSAB': the best makespan found over three runs of
+806 MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+Table 3 Results for Problem Instances of Lawrence (1984)a
+Makespan CPU [secl Improvements [%J
+Problem OPT ABZ MSS LALa TSAB TSAB' ABZb MSSb LALc TSABd ABZ MSS LAL
+10 machines, 10 jobs
+Al 945 978 959 956 946 945* 240 156 1,372 64 3.27 1.36 1.05 A2 784 787 784* 785 784* 192 94 1,440 3 0.38 0 0.13 A3 848 859 848* 861 848* 225 106 1,346 66 1.28 0 1.51 A4 842 860 842* 848 842* 240 116 1,660 60 2.09 0 0.71 A5 902 914 907 902* 902* 289 100 1,334 150 1.31 0.55 0
+10 machines, 15 jobs
+B1 (1,050) 1,084 1,071 1,063 1,055 1,047 362 206 3,982 21 2.68 1.49 0.75 B2 927 944 927* 938 954 927* 419 184 4,326 9 -1.06 -2.91 -1.71 B3 1,032 1,032* 1,032* 1,032* 1,0320 225 20 4,186 1 0 0 0 B4 935 976 973 952 948 939 434 200 4,196 184 2.87 2.57 0.42 B5 977 1,017 991 992 988 977* 430 180 4,266 155 2.85 0.30 0.40
+10 machines, 20 jobs
+C1 1,218 1,224 1,218* 1,218* 1,2180 744 54 8,684 16 0.49 0 0 C2 (1,270) 1,291 1,274 1,269 1,259 1,236 837 286 9,070 66 2.48 1.17 0.79 C3 (1,276) 1,250 1,216 1,224 1,2160 901 306 8,708 107 2.72 0 0.65 C4 (1,202) 1,239 1,196 1,218 1,164 1,160 892 268 8,816 493 6.05 2.68 4.43 C5 1,355 1,355* 1,355* 1,355* 1,355? 551 8 7,912 2 0 0 0
+10 machines, 30 jobs
+D1 1,784 1,784* - 1,784* 1,7840 38 - 3,034 1 0 - 0 D2 1,850 1,850* - 1,850* 1,8500 29 - 3,504 2 0 - 0 D3 1,719 1,719* - 1,719* 1,7190 26 - 3,760 0 0 - 0 D4 1,721 1,721* - 1,721* 1,7210 28 - 3,772 4 0 - 0 D5 1,888 1,888* - 1,888* 1,8880 22 - 3,336 1 0 - 0
+5 machines, 10 jobs
+Fl 666 666* - 666* 6660 1 - 246 0 0 - 0 F2 655 669 655* 655* 655* 12 4 234 8 2.09 0 0 F3 597 605 597* 606 597* 32 34 258 11 1.32 0 1.49 F4 590 593 590* 590* 593 590* 45 34 242 0 0 -0.51 -0.51 F5 593 593* - 593* 5930 1 - 236 0 0 - 0
+5 machines, 15 jobs
+Gl 926 926* - 926* 9260 1 - 572 0 0 - 0 G2 890 890* - 890* 890* 2 - 752 0 0 - 0 G3 863 863* 863* 863* 8630 5 2 584 0 0 0 0 G4 951 951* - 951* 9510 1 - 566 0 0 - 0 G5 958 958* - 958* 9580 1 - 486 0 0 - 0
+5 machines, 20 jobs
+Hi 1,222 1,222* - 1,222* 1,2220 2 - 1,254 0 0 - 0 H2 1,039 1,039* - 1,039* 1,0390 1 - 1,310 0 0 - 0 H3 1,150 1,150* - 1,150* 1,1500 1 - 1,128 0 0 - 0 H4 1,292 1,292* - 1,292* 1,2920 1 - 924 0 0 - 0 H5 1,207 1,207* - 1,207* 1,2070 3 - 1,472 0 0 - 0
+15 machines, 15 jobs
+11 1,268 1,305 1,292 1,293 1,275 1,268* 735 624 10,692 623 2.30 1.32 1.39 12 (1,424) 1,423 1,435 1,433 1,422 1,407 837 578 10,574 443 0.07 0.91 0.77 13 (1,232) 1,255 1,231 1,215 1,209 1,196 1,079 672 10,960 165 3.67 1.79 0.49 14 1,233 1,273 1,251 1,248 1,235 1,233* 669 660 11,532 325 2.99 1.28 1.04 15 (1,238) 1,269 1,235 1,234 1,234 1,229 899 616 10,746 322 2.76 0.08 0
+a The legend for this table appears on the bottom of Table 2.
+MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996 807
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+tions of 7 (out of 15 remaining) cases. For instances C2,
+C3, C4, I2, I3, I5, which had been unsolved by a branch
+and-bound algorithm of Brucker et al. (1991), TSAB
+found better makespans and for C3 proved optimality.
+TSAB' also found better makespans for instances Bi, C2,
+C4, I3, which had been unsolved by currently the best
+branch-and-bound algorithm of Applegate and Cook
+(1991).
+Algorithm AC, which is a combination of modified
+ABZ (Bottle5) and a post-optimization procedure (Shuf
+fle), generates better makespans than ABZ; however, it
+requires significantly greater CPU time. Taillard (1989)
+showed that TA is better than AC (and bottle proce
+dures) with respect to CPU time and makespan. This
+allowed us to restrict our attention to the performance
+of TA. Although TA has been tested in instances (a)
+(b), only results for FS2, Al... A5 and Bi, C2, C4, I3
+have been published. The number of iterations observed
+in 15 runs of TA necessary to find the optimal makespan
+of FS2 were between 2 106 and 35 106 (using only the
+short-term memory). The best result 2 105 iterations
+was chosen from among 10 runs of TA (using the short
+and long-term memory). The mean makespan obtained
+after 104 iterations was less than 3% above the optimal
+one. Note that TSAB found an optimal makespan of FS2
+within less than 0.75 104 iterations. The performance of
+TA on instances Al... A5 was presented in the form of
+the mean of makespans as a function of running time
+on a VAX 785. The mean of the optimal makespans is
+864.2 and TA found 873 after 150 sec and 866 after 1000
+sec. TSAB found 864.4 after 150 sec on a PC (see Table
+3). Finally note that TSAB' found better makespans than
+TA for C2, C4, I3 and equally good ones for Bi (see
+Taillard, 1989).
+Detailed characteristics of TSAB are provided in Ta
+ble 4. The reduction of a primal makespan reaches in
+extreme case 18 per cent, while the number of im
+provements of a solution during the search is greater
+than 75. It means that TSAB quickly and efficiently
+reduces the makespan. The number of iterations nec
+essary to find the best solution is less than 6.5 104.
+The length of list L (parameter maxl) has an important
+influence on the final result of "hard" instances. Pa
+rameter maxl correlates with maxiter in the sense that
+a decreasing maxiter should be compensated by an
+increasing maxl in order to guarantee the same per
+formance of TSAB. Our selection is a compromise
+reached experimentally.
+In our research we also examined other methods of
+finding an initial solution (among others SPT, LPT, EFT,
+RANDOM). In each case TSAB provides a makespan
+comparable with those generated by INSA after a small
+number (100. 500) of iterations performed within a
+few seconds.
+In order to isolate the impact of the neighborhood
+factor on the acceleration of the search we performed
+an additional test on hard instances (b). We compare
+TSAB with its analog version working on the neighbor
+hood H'(ir). For each group of instances Al... 5,
+Bl... 5, Cl... 5, and I1... 5 the performance of the al
+gorithms was presented in the form of the mean of
+makespans as a function of running time on AT 386DX.
+At each group the speed of convergence of TSAB with
+neighborhood H(ir) is significantly better than that with
+neighborhood H'(ir). The superiority increases with in
+creasing n. To illustrate the experiment, the results of
+the comparison for instances Cl... 5 are shown in Fig
+ure 3.
+4.2. Results for Instances (c)-(d)
+Instances (c) were solved by TA, AC, and ABZ (Taillard
+1989). Taillard reports that neither ABZ nor AC can
+solve instances with o > 600 due to running time and
+the explosion of the size of the search tree. For instances
+with o < 600, TA is shown to be better than AC and
+ABZ with respect to CPU time and the quality of gen
+erated makespans. Therefore, we discuss only a com
+parison of TSAB with TA. As in Taillard (1992), we are
+chiefly interested in the solution performance not seen
+on the running time. Therefore, without tuning, we set
+maxl = 5, maxt = 8, maxiter = 10,000 if the algorithm
+has improved the makespan (Step 3) and maxiter
+= 6,000 if back jump tracking (Step 5) has been per
+formed. The primal solution has been found by INSA.
+The time per single iteration is approximately
+4.5 10-5.o sec on a PC 386DX. The time per single
+iteration of TA on a VAX 785 is 16.7 10-5.0 sec. In
+comparing computer speeds, we conclude that TSAB
+performs a single iteration at least four times faster
+than TA.
+The speed of convergence of TSAB and TA is pre
+sented in Table 5. APRD is the average percentage rel
+808 MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+Table 4 Results of Improvements
+Makespan by TSAB for maxl
+Problem INSA 0 1 2 3 4 5 IP RED [%] ITER
+FS1 59 57 55* 3 6.8 580 FS2 994 938 930* 11 6.4 7,326 FS3 1,269 1,165* 22 8.2 1,183 AB5 1,381 1,238 14 10.4 1,019 AB6 1,012 947 945 14 6.6 7,948
+Al 1,077 974 956 946 21 12.2 19,695 A2 821 784* 9 4.5 1,031 A3 926 853 853 853 853 848* 14 8.4 18,023 A4 971 850 842* 21 13.4 15,039 A5 1,003 917 907 907 907 902* 28 10.1 37,959
+B1 1,179 1,061 1,055 34 10.5 3,732 B2 1,032 968 954 19 7.6 2,246 B3 1,132 1,032* 18 8.8 208 B4 1,021 949 949 949 948 23 7.2 30,001 B5 1,147 1,001 997 995 995 988 48 13.9 27,677
+Cl 1,397 1,226 1,218* 58 12.8 2,106 C2 1,466 1,268 1,268 1,259 48 14.1 8,971 C3 1,485 1,221 1,216* 72 18.1 16,630 C4 1,385 1,218 1,164 76 16.0 63,469 C5 1,463 1,355* 27 7.4 282
+Dl 1,966 1,784* 39 9.3 84 D2 1,982 1,850* 33 6.7 135 D3 1,767 1,719* 8 2.7 9 D4 1,844 1,721* 45 6.7 302 D5 1,967 1,888* 18 4.0 48
+Fl 666* 0 0.0 0 F2 722 658 655* 16 9.3 5,353 F3 681 617 605 605 597* 14 12.3 7,546 F4 659 593 8 10.0 21 F5 593* 0 0.0 0
+Gl 950 926* 3 2.5 6 G2 976 890* 13 8.8 23 G3 868 863* 1 0.6 1 G4 951* 0 0.0 0 G5 958* 0 0.0 0
+Hi 1,293 1,222* 8 5.5 11 H2 1,044 1,039* 1 0.5 1 H3 1,154 1,150* 1 0.4 1 H4 1,328 1,292* 1 2.7 1 H5 1,323 1,207* 29 8.8 90
+I1 1,445 1,303 1,303 1,279 1,278 1,278 1,275 43 11.8 64,473 12 1,726 1,450 1,450 1,422 75 17.6 41,183 13 1,307 1,246 1,209 33 7.5 15,579 14 1,393 1,274 1,237 1,237 1,235 55 11.3 31,991 15 1,387 1,261 1,234 50 11.0 30,417
+INSA: the initial makespan for TSAB f IP: the number of improvements of m RED: the value 100 (INSA - TSAB)/IN ITER: the number of iterations perfor solution is optimal.
+MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996 809
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+Figure 3 Perfonnance of TSAB with Neighborhoods H and H' on In
+stances Cl ... 5.
+1440 1440 1 -----~~~~.. .. TSAB+H ' 1420 TSAB+H
+1400 l ".
+c 1380 '-.
+m 1360
+E 1340
+E
+, 1320 
+1300
+1280 
+1260
+1240 1 10 100 1000
+CPU time (Seconds on AT 386DX)
+ative difference 100 (CH - C*) / C over 10 instances of
+a given size, where H E (TSAB, TAI and C* is the ref
+erence makespan (the best that was found by Tailard
+1993, obtained in 3 or 4 runs of TA with 5 105 107
+iterations per run). For our algorithm we scan APRD
+after performing a given number of iterations (from 103
+to 105). APRD of TA, scanned in some irregular num
+bers of iterations, is taken from Taillard (1989). Note
+that TSAB generates in every case faster and better
+makespans than TA. As an instance, see case 30 jobs 20
+machines for which APRD 3.5% is obtained by TA after
+performing at least 2 105 iterations, while TSAB found
+APRD 3.7% after 2 104 and 1.9% after 105 iterations.
+Particularly good results were found for larger prob
+lems with o 2 1000. For these instances reference make
+spans were reached by TSAB in a single run after per
+forming 2 1i04 iterations. Note that, originally, reference
+makespans were obtained in three or four runs of TA
+with 5 105 iterations per run.
+In Table 6 we present instances for which TSAB found
+better makespans than the reference ones. For this test
+TSAB was run twice with maxt = 8 and 10, and with maxl,
+maxiter having the same values as the above. We found
+33 better results among 61 instances for which optimality
+has not been proved. We proved optimality of 10 results
+(from 33 found) using property (eight cases) and single
+machine preemptive lower bound (two cases).
+Table 5 Average Percentage Relafive Difference (APRD) Between thfe Makespan Given by Algorithm H, HE (TSAB, TA), and the Reference Makespan a
+for Problem Instances of Taillard (1993)b
+APRD of TSAB for iter APRD of TA
+n/m 0 1,000 2,000 5,000 10,000 20,000 50,000 100,000 (iter is given in brackets)
+15/15 13.9 5.4 3.5 2.8 2.2 1.3 1.1 0.8 5.2 1.7 0.9
+(3,790) (42,423) (142,989) 20/15 16.5 5.3 4.5 3.9 3.2 2.4 1.4 0.9 7.3 2.6 1.5
+(5,544) (64,844) (215,935) 20/20 15.8 6.7 5.4 3.6 2.4 1.9 1.4 1.2 6.6 1.6 0.9 (8,941) (93,176) (343,927) 30/15 18.8 7.1 5.7 3.6 2.8 1.6 0.7 0.6 11.9 2.1 1.1 (8,174) (105,695) (426,762) 30/20 20.3 8.8 7.3 5.6 4.5 3.7 2.5 1.9 13.6 3.5 1.4 (14,169) (201,542) (762,446)
+50/15 16.4 4.7 3.1 1.2 0.3 0.1 0.0 0.0 50/20 17.1 5.9 4.1 2.1 0.6 -0.8 -1.5 -2.0 100/20 13.2 4.9 3.2 1.1 0.4 0.0 -0.1 -0.1
+a the best makespans reported by Taillard (1993); b APRD found over 10 instances of the given size;
+n/m: the number of jobs/the number of machines;
+iter: the number of iterations performed by the algorithm
+810 MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+Table 6 Best Makespans Found by TSAB for Problem Instances of Taillard (1993)
+n/mrk TAa TSABb n/mrk TAa TSABb n/mrk TAa TSABb
+15/15/2 1,252 1,244 20/20/6 1,679 1,657 50/20/1 2,921 2,8680 15/15/3 1,223 1,222 20/20/9 1,635 1,629 50/20/2 3,002 2,902 15/15/5 1,234 1,233 30/15/1 1,770 1,766 50/20/3 2,835 2,7550 15/15/8 1,221 1,220 30/15/2 1,853 1,841 50/20/4 2,775 2,702* 15/15/9 1,289 1,282 30/15/3 1,855 1,832 50/20/5 2,800 2,7250 15/15/10 1,261 1,259 30/15/7 1,822 1,815 50/20/6 2,914 2,8450 20/15/2 1,381 1,377 30/15/8 1,714 1,700 50/20/7 2,895 2,841 20/15/4 1,355 1,345 30/15/9 1,824 1,811 50/20/8 2,835 2,784* 20/15/8 1,432 1,413 30/15/10 1,723 1,720 50/20/9 3,097 3,0710 20/15/9 1,361 1,352 30/20/8 2,005 2,001 50/20/10 3,075 2,9950 20/15/10 1,373 1,362 50/15/5 2,689 2,6790 100/20/10 5,213 5,1830
+n/mrk: the number of jobs/the number of machines/the index of instance; a the best makespan found over 3-4 runs for various initial solutions; I the best makespan found over 2 runs with maxt = 8, 10 (the same initial * the algorithm found optimal solution without proving optimality;
+0 the algorithm found optimal solution and proves its optimality.
+Another set of large-size instances (d) were generated
+similarly as in Taillard (1993). TSAB were tuned in the
+same way as in ?4.1 (with SPT instead of INSA), and
+required approximately 9 10 - *O- sec per single iteration
+on a PC (due to large-memory implementation). All
+tested instances were solved optimally. The mean num
+ber of iteration necessary to find the optimal makespan
+is 30 for the instances 5 x 500, 50 for 5 x 1,000, about
+2 103 for instances 10 x 500, and about 7.5 103 for those
+10 x 1,000.
+5. Conclusions
+We have presented a method based on a taboo search
+technique for minimizing the maximum makespan in
+the job shop scheduling problem. Due to the special
+structure of the neighborhood, the method works faster
+and more efficiently than other known algorithms, even
+though the connectivity property does not hold for the
+applied neighborhood. This makes it possible to solve
+optimally, or almost optimally, medium and large-size
+job shop problems on a Personal Computer in seconds
+or at most a few minutes. The proposed method is easily
+implementable and has several parameters which can
+"tune" the method to the type of problem instances
+(primal values of tuning parameters are recom
+mended). The approach can be easily extended to other
+scheduling problems (such as flow shop and open
+shop) with the minimum value of the maximum penalty
+criterion.
+Seen in the broader context, the proposed method dif
+fers in some elements from the original TS proposals.
+First, the method does not keep track of the quality of
+all unselected neighbors, but employs only a subset of
+such neighbors. Second, solutions recorded in the list L
+(elite solutions) are selected in a specific way, which the
+oretically allows us to collect solutions relatively close
+to each other, and located near a single local optimum;
+this suggest that some region(s) of the solution space
+could be searched very intensively whereas other, prob
+ably more worthwhile, could be disregarded. Indeed, in
+the experiments we observed in L some sequences of
+succesive solutions, Figure 4, however, in the stable
+phase of the search they had at most three elements
+(hence maxl we set to 5). Moreover, our method re
+started from a close solution usually performed quite
+different path search and tended to a "good" distant
+region. A version of TSAB such that only distant best
+solutions were taken to the list L (the distance were
+measured by the number of iterations) provided gen
+erally worse results, although an improvement was
+observed for some instances. On the other hand, the
+MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996 811
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+Figure 4 TSAB, first 600 iterations on instance A5. At iteration 600 the
+list L contains solutions found at iterations 263, 294, 465, 477,
+479 (see markers on the horizontal axis).
+iakespan 1150
+1100 1
+1050
+950
+liii i- I - I 11. lli I . I
+100 200 300 400 500 iterations
+problem of selection of elite solutions to L should be
+considered in the context of our method behavior in a
+single path search. In all tested instances, the makespan
+for successive solutions is similar, and this is rather un
+usual for TS; see Figure 4. Changes are sharp, with high
+amplitude, and quite often the makespan exceeds the
+initial value (1003 in this figure). There are no clear dif
+ferences between the phase of best makespan decreas
+ing exponentially and the stable phase. Taking all ar
+guments into account, it seems that there are no reason
+able criteria for creating a selection which would be
+good enough for all instances. It means that any pro
+posed criterion should be verified experimentally.
+Based on our experience, we proposed such criteria,
+tested them, and obtained quite promising results. Nev
+ertheless, it remains an open space for further research.2
+2 authors wish to thank the anonymous referees for their comments. Special thanks are addressed to Fred Glover for his valuable suggestions referring to TS technique. This research was partially supported by the International Institute of Applied System Analysis, Laxenburg, Austria.
+Appendix A
+Proof of Theorem Let 7r E H be a feasible processing order and u = (ul, . . ., u?U) be the selected critical path in G(7r), which generates blocks Bl, . .., Br and the neighborhood H(ir). Set U = {u1, ..., uUI) Consider a
+E H'O(r)\H(0r). Denote by (x, y) the pair of operations in 7r, which ha been interchanged in order to obtain a, i.e., a = Q(7r, (x, y)). Then we
+have
+(Al) x and y are successive operations on some machine q in ir,j (q = 1x = ,u,,), which means that (x, y) E E(7r), and (A2) x and y are successive operations on critical path u' = (ut,. ... U',,) in G(Or).
+Generally u' can be different from u. It will be shown that in G(a) j, 7 ~~~def
+there exists a path z not shorter than T =i T I = T which means that Crax(a) 2 T = Cmax(r). In order to prove this consider separately four cases: "x E U, y E U," "x E U, y E U," "xE U, y E U," and "x E U, y E U."
+Case "x E U, y E U." The interchange of operations x, y preserves arcs (u1, u2), (U2, U3),. . . , (u?,-1, u?U) in G(a). Hence graph G(a) contains path z = u with the length r. (The path z need not be the critical path of this graph.) Case "x E U,y E U." Letx = ukforcertaink,l < k c w. If k = w
+then by (Al) the graph G(Or) contains a path (u, y) longer than T, wh means that u is not the critical path (contradiction). Therefore it must
+be that k < w. Next, observe that y * Uk+l (since y k U), (Uk, y) E E(7r) (by Al), and (Uk, Uk+1) E E(7r) U R. Then we have (Uk, Uk+l) E R. Now,
+assume that k > 1 and consider the following two subcases: ''1li-I * ,,k" and "l,k-I = ,,,." (i) "Alk-, * I,k ." By the definition of G(Or) it follows that (Uk-1, Uk) E R. Hence, graph G(a) contains path z = u with the length r.
+(ii) "I',k- = ,."k' Since (Uk-1, y) E E(a) and (y, Uk) E E(a) then graph G(a) contains path z = (ul . Uk-l, y, Uk, ..J. U?U) with the length T
++ Try If k = l then (y, u,) E E(a) and graph G(a) contains path z = (y, u) with the length r + Try Case "x y U, y E U." The proof can be done by symmetry to the previous case. Case "x E U, y E U." Let x = uk for certain k,l < k - w and y = u
+for certain 1 * k, I 1 c - w. Note that 1 = k + 1. Consider block B,, I < e < r, such that x E Be and y E Be (by the definition of blocks, e exists). If we have only one block (i.e., e = r = I and u = B1) then
+graph G(a) contains path z = (ul, . . ., Uk-1, y = Uk+I, X - Uk, Uk+2, . . .. U?U) of length T. Otherwise, consider the following three subcases: "l < e < r," "e = 1" and "e = r." (i) < e < r." Since a c H(7r) then (x, y) z VY(7r). Hence a, < k and k + 1 < be. Therefore graph G(a) contains path
+z = (BI, B2, ..., Be1-, U,, u,+1, ..e Uki1, y = Uk+l, X = Uk,
+Uk+2, ... Ubk, Be+1, ..*, Br)
+of length r. (ii) "e = I." Since a t H(7r) then (x, y) t V Therefore graph G(a) contains path
+z = (u,I Ua+l ..., Uk_1 Y = Uk+l, X = Uk, Uk+2, .**, Ub1, B2, * Br)
+of length r. (iii) "e = r." The proof can be done by symmetry to (ii). O
+812 MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
+
+
+NOWICKI AND SMUTNICKI
+A Fast Taboo Search Algorithm
+Appendix B
+Proof of Property By definition V(7r) can be empty in one of two following cases: "a,
+=bi,= l,...,r" or"'r=1." Case "aj = bj, j = 1, .., r." It means that (uj, ui+1) E R, j = 1, w - 1, and therefore all operations from u are operations of the same
+job k (i.e., w = Ok and u = (ul, . .., Uz,) = (lk-i + 1, * * *, lk-i + ?k)). Hence, we obtain that Cmax(7r) is equal to the job-based bound
+Zi=k1l+1 Ti . Case "r = 1." It means that all operations from u = B1 are processed
+on the same machine q = y(B1) (i.e., {ul, ..., UT,I = M,). Therefore
+Cmax(.r) is equal to the machine-based bound Xi,M, Ti.
+References Adams, J., E. Balas, and D. Zawack, "The Shifting Bottleneck Proce
+dure for Job Shop Scheduling," Management Sci., 34,3 (1988), 391
+401.
+Applegate D. and W. Cook, "A Computational Study of the Job-Shop
+Scheduling Problem," ORSA J. Comput., 3, 2 (1991), 149-156.
+Brucker P., B. Jurish, and B. Sieviers, "A Fast Branch & Bound Algo
+rithm for the Job-Shop Problem," Report, Universitat Osnabriick,
+Germany, 1991.
+, and B. Jurish, "Job-shop (C codes)," European J. Oper. Res., 57 (1992), 132-133.
+Carlier J. and E. Pinson, "An Algorithm for Solving the Job-Shop Problem," Management Sci., 35, 2 (1989), 164-176.
+Eck B. and M. Pinedo, "Good Solution to Job Scheduling Problems Via Tabu Search," Presented at Joint ORSA/TIMS Meeting, Vancou
+ver, Canada, May 10, 1989.
+Fisher H. and G. L. Thompson, "Probabilistic Learning Combinations
+of Local Job-Shop Scheduling Rules," in J. F. Muth and G. L.
+Thompson (Eds.), Industrial Scheduling, Prentice-Hall, Engle
+wood, Chichester, UK, 1963.
+French S., Sequencing and Scheduling: An Introduction to the Mathematics
+of the Job-Shop, Horwood, Chichester, UK, 1982.
+Glover F., C. McMilan, and B. Novick, "Interactive Decision Software
+and Computer Graphics for Architectural and Space Planning,"
+Annals of Oper. Res., 5, (1985), 557-573.
+, "Future Path for Integer Programnming and Links to Artificial Intelligence," Computers and Oper. Res., 13, 5 (1986), 533-549.
+, "Tabu Search-Part I," ORSA J. Computing, 1, 3 (1989),190-206. , "Tabu Search-Part II," ORSA J. Computing, 2, 1 (1990), 4-32. , and M. Laguna, "Tabu Search," in C. Reeves (Ed.), Modern Heuristic Techniques for Combinatorial Problems, Blackwell Scientific
+Publishing, 1993.
+, E. Taillard, and D. de Werra, "A Users Guide to Tabu Search," Annals of Oper. Res., 41 (1993), 3-28.
+Grabowski J., E. Nowicki, and S. Zdrzalka, "A Block Approach for
+Single Machine Scheduling with Release Dates and Due Dates,"
+European J. Oper. Res., 26 (1986), 278-285. Hubscher R. and F. Glover, "Applying Tabu Search with Influential
+Diversification to Multiprocessor Scheduling," Graduate School
+of Business, University of Colorado, Denver, CO, 1992. Van Laarhoven P. J. M., E. H. L. Aarts, and J. K. Lenstra, "Job Shop
+Scheduling by Simulated Annealing," Oper. Res., 40, 1 (1992),
+113-125.
+Lageweg B. J., J. K. Lenstra, and A. H. G. Rinnooy Kan, "Job-Shop
+Scheduling by Implicit Enumeration," Management Sci., 24 (1977),
+441-450.
+Lawler E. L., J. K. Lenstra, and A. H. G. Rinnooy Kan, "Recent Devel
+opments in Deterministic Sequencing and Scheduling: A Survey,"
+in M. A. H. Dempster, J. K. Lenstra, and A. H. G. Rinnooy Kan
+(Eds.), Deterministic and Stochastic Scheduling, Reichel, Dordrecht,
+The Netherlands, 1982.
+Lawrence S., "Resource Constrained Project Scheduling: An Experi
+mental Investigation of Heuristic Scheduling Techniques (Sup
+plement)," Graduate School of Industrial Administration, Car
+negie Mellon University, Pittsburgh, PA, 1984.
+Matsuo H. C., C. J. Suh, and R. S. Sullivan, "A Controlled Search
+Simulated Annealing Method for the General Jobshop Scheduling Problem," Working Paper 03-04-88, Department of
+Management, The University of Texas at Austin, Austin, TX,
+1988.
+Nawaz M., E. E. Enscore, JR., and I. Ham, "A Heuristic Algorithm for the m-machine, n-job Flow-shop Sequencing Problem," OMEGA
+International J. Management Sci., 11, 1 (1983), 91-95. Shmoys D. B., C. Stein, and J. Wein, "Improved Approximation Algorithms for Shop Scheduling Problems," Proc. Second ACMSIAM Symposium on Discrete Algorithms, January, 1991.
+Spachis A. S. and J. R. King, "Job-Shop Scheduling Heuristics with Local Neighborhood Search," International J. Production Res., 17, 6
+(1979), 507-526.
+Storer R. H., S. David Wu, and R. Vaccari, "New Search Spaces for Sequencing Problems with Application to Job Shop Scheduling," Management Sci., 10, 10 (1992), 1495-1509. Taillard E., "Parallel Taboo Search Technique for the Jobshop Scheduling Problem," Working Paper ORWP 89/11 (revised version October 1992), Departement de Mathematiques, Ecole Polytechnique Federale De Lausanne, Lausanne, Switzerland,
+1989.
+, "Benchmarks for basic scheduling problems," European J. Oper Res., 64 (1993), 278-285.
+Werner F. and A. Winkler, "Insertion Techniques for the Heuristic Solution of the Job Shop Problem," Report, Technische Universitat "Otto von Guericke," Magdeburg, Germany, 1992.
+Accepted by Luk Van Wassenhove; received May 13, 1993. This paper has been with the authors 3 months for 1 revision.
+MANAGEMENT SCIENCE/Vol. 42, No. 6, June 1996 813
+This content downloaded from 132.236.27.217 on Wed, 14 Sep 2016 23:53:09 UTC
+All use subject to http://about.jstor.org/terms
